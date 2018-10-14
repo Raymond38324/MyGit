@@ -378,4 +378,147 @@ FROM employee JOIN department
 ON employee.in_dpt = department.dpt_name
 ORDER BY id;
 ```
+# 表的修改和删除
 
+数据库源代码
+
+```
+git clone https://github.com/shiyanlou/SQL5
+```
+
+## 对一张表的修改
+
+### 重命名一张表
+
+重命名一张表的语句有多种形式，以下 3 种格式效果是一样的：
+
+```mysql
+RENAME TABLE 原名 TO 新名字;
+
+ALTER TABLE 原名 RENAME 新名;
+
+ALTER TABLE 原名 RENAME TO 新名;
+```
+
+### 删除一张表
+
+删除一张表的语句，格式是这样的：
+
+```mysql
+DROP TABLE 表名字;
+```
+
+## 对表结构的修改
+
+### 增加一列
+
+在表中增加一列的语句格式为：
+
+```mysql
+ALTER TABLE 表名字 ADD COLUMN 列名字 数据类型 约束;
+
+或： ALTER TABLE 表名字 ADD 列名字 数据类型 约束;
+```
+
+现在 employee 表中有 `id、name、age、salary、phone、in_dpt` 这6个列，我们尝试加入 `height` (身高)一个列并指定DEFAULT 约束：
+
+```mysql
+ALTER TABLE employee ADD COLUMN height INT(3) DEFAULT 170;
+```
+
+新增加的列，被默认放置在这张表的最右边。如果要把增加的列插入在指定位置，则需要在语句的最后使用AFTER关键词(**“AFTER 列1” 表示新增的列被放置在 “列1” 的后面**)。
+
+比如我们新增一列 `weight` (体重)放置在 `age` (年龄)的后面：
+
+```MYSQL
+ALTER TABLE employee ADD COLUMN weight INT(3) DEFAULT 120 AFTER age;
+```
+
+上面的效果是把新增的列加在某位置的后面，如果想放在第一列的位置，则使用 `FIRST` 关键词，如语句：
+
+```MYSQL
+ALTER TABLE employee ADD test INT(10) DEFAULT 11 FIRST;
+```
+
+### 删除一列
+
+删除表中的一列和刚才使用的新增一列的语句格式十分相似，只是把关键词 `ADD` 改为 `DROP` ，语句后面不需要有数据类型、约束或位置信息。具体语句格式：
+
+```MYSQL
+ALTER TABLE 表名字 DROP COLUMN 列名字;
+或： ALTER TABLE 表名字 DROP 列名字;
+```
+
+我们把刚才新增的 `test` 删除：
+
+```MYSQL
+ALTER TABLE employee DROP COLUMN test；
+```
+
+### 重命名一列
+
+这条语句其实不只可用于重命名一列，准确地说，它是对一个列做修改(CHANGE) ：
+
+```mysql
+ALTER TABLE 表名字 CHANGE 原列名 新列名 数据类型 约束;
+```
+
+> **注意：这条重命名语句后面的 “数据类型” 不能省略，否则重命名失败。**
+
+当**原列名**和**新列名**相同的时候，指定新的**数据类型**或**约束**，就可以用于修改数据类型或约束。需要注意的是，修改数据类型可能会导致数据丢失，所以要慎重使用。
+
+我们用这条语句将 “height” 一列重命名为汉语拼音 “shengao” 
+
+```mysql
+ALTER TABLE employee CHANGE height shengao INT(3);
+```
+
+### 改变数据类型
+
+要修改一列的数据类型，除了使用刚才的**CHANGE**语句外，还可以用这样的**MODIFY**语句：
+
+```MYSQL
+ALTER TABLE 表名字 MODIFY 列名字 新数据类型;
+```
+
+再次提醒，修改数据类型必须小心，因为这可能会导致数据丢失。在尝试修改数据类型之前，请慎重考虑。
+
+## 对表的内容修改
+
+### 修改表中某个值
+
+大多数时候我们需要做修改的不会是整个数据库或整张表，而是表中的某一个或几个数据，这就需要我们用下面这条命令达到精确的修改：
+
+```mysql
+UPDATE 表名字 SET 列1=值1,列2=值2 WHERE 条件;
+```
+
+比如，我们要把 Tom 的 age 改为 21，salary 改为 3000：
+
+```mysql
+ UPDATE employee SET age=21,salary=3000 WHERE name = 'Tom';
+```
+
+###  删除一行记录
+
+删除表中的一行数据，也必须加上WHERE条件，否则整列的数据都会被删除。删除语句：
+
+```MYSQL
+DELETE FROM 表名字 WHERE 条件;
+```
+
+我们尝试把Tom的数据删除：
+
+````MYSQL
+DELETE FROM employee WHERE name = 'Tom';
+````
+
+# 其他基本操作
+
+## 索引
+
+## 视图
+
+## 导入和导出
+
+## 备份和恢复
