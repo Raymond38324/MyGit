@@ -517,8 +517,163 @@ DELETE FROM employee WHERE name = 'Tom';
 
 ## 索引
 
+索引是一种与表有关的结构，它的作用相当于书的目录，可以根据目录中的页码快速找到所需的内容。
+
+当表中有大量记录时，若要对表进行查询，没有索引的情况是全表搜索：将所有记录一一取出，和查询条件进行一一对比，然后返回满足条件的记录。这样做会消耗大量数据库系统时间，并造成大量磁盘 I/O 操作。
+
+而如果在表中已建立索引，在索引中找到符合查询条件的索引值，通过索引值就可以快速找到表中的数据，可以**大大加快查询速度**。
+
+对一张表中的某个列建立索引，有以下两种语句格式：
+
+```mysql
+ALTER TABLE 表名字 ADD INDEX 索引名 (列名);
+
+CREATE INDEX 索引名 ON 表名字 (列名);
+```
+
+我们用这两种语句分别建立索引：
+
+```mysql
+ALTER TABLE employee ADD INDEX idx_id (id);  #在employee表的id列上建立名为idx_id的索引
+
+CREATE INDEX idx_name ON employee (name);   #在employee表的name列上建立名为idx_name的索引
+```
+
+索引的效果是加快查询速度，当表中数据不够多的时候是感受不出它的效果的。这里我们使用命令 **SHOW INDEX FROM 表名字;** 查看刚才新建的索引：
+
+![01](https://doc.shiyanlou.com/MySQL/sql-06-01.png/wm)
+
+在使用SELECT语句查询的时候，语句中WHERE里面的条件，会**自动判断有没有可用的索引**。
+
 ## 视图
+
+视图是从一个或多个表中导出来的表，是一种**虚拟存在的表**。它就像一个窗口，通过这个窗口可以看到系统专门提供的数据，这样，用户可以不用看到整个数据库中的数据，而只关心对自己有用的数据。
+
+注意理解视图是虚拟的表：
+
+- 数据库中只存放了视图的定义，而没有存放视图中的数据，这些数据存放在原来的表中；
+- 使用视图查询数据时，数据库系统会从原来的表中取出对应的数据；
+- 视图中的数据依赖于原来表中的数据，一旦表中数据发生改变，显示在视图中的数据也会发生改变；
+- 在使用视图的时候，可以把它当作一张表。
+
+创建视图的语句格式为：
+
+```MYSQL
+CREATE VIEW 视图名(列a,列b,列c) AS SELECT 列1,列2,列3 FROM 表名字;
+```
+
+可见创建视图的语句，后半句是一个SELECT查询语句，所以**视图也可以建立在多张表上**，只需在SELECT语句中使用**子查询**或**连接查询**，这些在之前的实验已经进行过。
+
+现在我们创建一个简单的视图，名为 **v_emp**，包含**v_name**，**v_age**，**v_phone**三个列：
+
+```MYSQL
+CREATE VIEW v_emp(v_name,v_age,v_phone) AS SELECT name,age,phone FROM employee;
+```
+
+![02](https://doc.shiyanlou.com/MySQL/sql-06-02.png/wm)
+
+创建一个包含连接查询的视图
+
+```mysql
+ CREATE VIEW v_join(v_name, v_salary ,v_projname) AS SELECT name,salary, proj_name FROM  employee JOIN project ON employee.in_dpt = project.of_dpt;
+```
+
+创建一个包含子查询的视图
+
+```mysql
+CREATE VIEW v_son(v_dpt,v_number) AS SELECT of_dpt,COUNT(proj_name) FROM project GROUP BY of_dpt HAVING of_dpt IN (SELECT in_dpt FROM employee WHERE name= 'Tom');
+```
 
 ## 导入和导出
 
+不适用与ＳＱＬ
+
+### 导入
+
+导入操作，可以把一个文件里的数据保存进一张表。导入语句格式为：
+
+```mysql
+LOAD DATA INFILE '文件路径和文件名' INTO TABLE 表名字;
+```
+
+### 导出
+
+导出与导入是相反的过程，是把数据库某个表中的数据保存到一个文件之中。导出语句基本格式为：
+
+```nysql
+SELECT 列1，列2 INTO OUTFILE '文件路径和文件名' FROM 表名字;
+```
+
+**注意：语句中 “文件路径” 之下不能已经有同名文件。**
+
+现在我们把整个employee表的数据导出到 /var/lib/mysql-files/ 目录下，导出文件命名为 **out.txt** 具体语句为：
+
+```mysql
+SELECT * INTO OUTFILE '/var/lib/mysql-files/out.txt' FROM employee;
+```
+
 ## 备份和恢复
+
+### 备份
+
+数据库中的数据或许十分重要，出于安全性考虑，在数据库的使用中，应该注意使用备份功能。
+
+> 备份与导出的区别：导出的文件只是保存数据库中的数据；而备份，则是把数据库的结构，包括数据、约束、索引、视图等全部另存为一个文件。
+
+**mysqldump** 是 MySQL 用于备份数据库的实用程序。它主要产生一个 SQL 脚本文件，其中包含从头重新创建数据库所必需的命令CREATE TABLE INSERT 等。
+
+使用 mysqldump 备份的语句：
+
+```mysql
+mysqldump -u root 数据库名>备份文件名;   #备份整个数据库
+
+mysqldump -u root 数据库名 表名字>备份文件名;  #备份整个表
+```
+
+我们尝试备份整个数据库 `mysql_shiyan`，将备份文件命名为 `bak.sql`，先 `Ctrl+Z` 退出 MySQL 控制台，再打开 Xfce 终端，在终端中输入命令：
+
+```musql
+cd /home/shiyanlou/
+mysqldump -u root mysql_shiyan > bak.sql;
+```
+
+使用命令 “ls” 可见已经生成备份文件 `bak.sql`：
+
+![07](https://doc.shiyanlou.com/MySQL/sql-06-07.png/wm)
+
+> 你可以用gedit查看备份文件的内容，可以看见里面不仅保存了数据，还有所备份的数据库的其他信息。
+
+### 恢复
+
+用备份文件恢复数据库
+
+```mysql
+source /tmp/SQL6/MySQL-06.sql
+```
+
+这就是一条恢复语句，它把 MySQL-06.sql 文件中保存的`mysql_shiyan` 数据库恢复。
+
+还有另一种方式恢复数据库，但是在这之前我们先使用命令新建一个**空的数据库 test**：
+
+```mysql
+mysql -u root          #因为在上一步已经退出了MySQL，现在需要重新登录
+
+CREATE DATABASE test;  #新建一个名为test的数据库
+```
+
+再次 **Ctrl+Z** 退出MySQL，然后输入语句进行恢复，把刚才备份的 **bak.sql** 恢复到 **test** 数据库：
+
+```sql
+mysql -u root test < bak.sql
+```
+
+我们输入命令查看 test 数据库的表，便可验证是否恢复成功：
+
+```mysql
+mysql -u root          #因为在上一步已经退出了MySQL，现在需要重新登录
+
+use test               #连接数据库test
+
+SHOW TABLES;           #查看test数据库的表
+```
+
