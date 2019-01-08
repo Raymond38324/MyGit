@@ -17,13 +17,16 @@ course_dic={"药物化学":133816,
 pprint(course_dic)
 course_id=int(input(">>>输入课程id:"))
 course=input(">>>输入课程名:")
-headers={"Cookie":"PHPSESSID=b8d06e9713804479bde8a5f7eaecf678", "User-Agent":"okhttp/3.11.0"}
+headers={"Cookie":"PHPSESSID=c155508d87f746dbb7ca3830b3f91d22", "User-Agent":"okhttp/3.11.0"}
 data={"page":0, "size":30, "courseId":course_id}
+#用requests获取题目链接
 urls=[i['link'] for i in requests.post('http://39.105.253.51:90//app/courseTest/list/history',headers=headers,data=data).json()['data']['list']]
 print(len(urls))
 pprint(urls)
 def parse(url):
+    #处理每个链接网址
     response=HtmlResponse(url=url,body=requests.get(url,headers=headers).content.decode('utf8').encode('utf8'))
+    #用xpath和css提取到所需内容
     title = (i.strip()+"\n" for i in response.css('span.item-title::text').extract() if i.strip())
     choice_before=(i.strip() for i in response.css('div.item-media::text').extract() if i.strip())
     choice_after=[i.strip() for i in response.css('div.item-title::text').extract()]
@@ -42,7 +45,7 @@ def parse(url):
     except StopIteration:
         print("Iter error happend")
     return result
-
+#得到所有题目的列表，并将列表写入文件
 res=[]
 for i in urls:
     res +=parse(i)
