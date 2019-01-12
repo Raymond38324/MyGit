@@ -4,7 +4,7 @@ from pprint import pprint
 from pymongo import MongoClient
 client=MongoClient()
 db=client.answer
-headers={"Cookie":"PHPSESSID=b8d06e9713804479bde8a5f7eaecf678", "User-Agent":"okhttp/3.11.0"}
+headers={"Cookie":"PHPSESSID=c155508d87f746dbb7ca3830b3f91d22", "User-Agent":"okhttp/3.11.0"}
 course_dic={"药物化学":133816,
             "药理学":133815,
             #"毛中特":133471,
