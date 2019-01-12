@@ -8,22 +8,26 @@ db = client.answer
 
 
 def judge(answer, i, db):
-    for j in answer:
-        if j not in i['answer'] or len(j) != i['answer'].replace(" ", "")[6:].__len__():
-            print("\033[1;31;44m回答错误\033[0m")
-            print(i["answer"])
-            sleep(3)
-            db.update_one({"title": i["title"]}, {"$inc": {"error": 1}})
-            system('clear')
-            return True
-    if i.get('error'):
-        if i['error'] > 0:
-            db.update_one({"title": i["title"]}, {"$inc": {"error": -1}})
+    if answer:
+        for j in answer:
+            if j not in i['answer'] or len(answer) != i['answer'].replace(" ", "")[6:].__len__():
+                print("\033[1;31;44m回答错误\033[0m")
+                print(i["answer"])
+                sleep(3)
+                db.update_one({"title": i["title"]}, {"$inc": {"error": 1}})
+                system('clear')
+                return True
+        if i.get('error'):
+            if i['error'] > 0:
+                db.update_one({"title": i["title"]}, {"$inc": {"error": -1}})
+            else:
+                db.update_one({"title": i["title"]}, {"$set": {"error": 0}})
         else:
             db.update_one({"title": i["title"]}, {"$set": {"error": 0}})
+        system("clear")
     else:
-        db.update_one({"title": i["title"]}, {"$set": {"error": 0}})
-    system("clear")
+        answer = input("输入答案>>>")
+        return judge(answer, i, db)
 
 
 def test(db):
